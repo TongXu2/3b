@@ -1,0 +1,74 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * Orange Pi 3B - I2S1 External TX (Master) Overlay
+ *
+ * This overlay reconfigures I2S1 from the on-board RK809 codec (m0 pins)
+ * to external GPIO pins (m1 mux) on the 40-pin header for board-to-board
+ * I2S audio transmission.
+ *
+ * WARNING: Enabling this overlay disables the RK809 headphone/speaker audio.
+ *          HDMI audio (I2S0) remains unaffected.
+ *
+ * 40-pin header wiring (Master TX board):
+ *   Pin 11 - MCLK  (GPIO3_C6)  [optional]
+ *   Pin 12 - SCLK  (GPIO3_C7)  --> connect to Slave Pin 12
+ *   Pin 35 - LRCK  (GPIO3_D0)  --> connect to Slave Pin 35
+ *   Pin 40 - SDO   (GPIO3_D1)  --> connect to Slave Pin 38 (SDI)
+ *   Pin 39 - GND                --> connect to Slave GND
+ */
+
+/ {
+	fragment@0 {
+		target-path = "/rk809-sound";
+
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			spdif_dit: spdif-dit {
+				compatible = "linux,spdif-dit";
+				#sound-dai-cells = <0>;
+				status = "okay";
+			};
+
+			i2s_ext_sound: i2s-ext-sound {
+				compatible = "simple-audio-card";
+				simple-audio-card,format = "i2s";
+				simple-audio-card,name = "I2S-External-TX";
+				simple-audio-card,mclk-fs = <256>;
+
+				simple-audio-card,bitclock-master = <&i2s_ext_cpu>;
+				simple-audio-card,frame-master = <&i2s_ext_cpu>;
+
+				i2s_ext_cpu: simple-audio-card,cpu {
+					sound-dai = <&i2s1_8ch>;
+				};
+
+				simple-audio-card,codec {
+					sound-dai = <&spdif_dit>;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2s1_8ch>;
+
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2s1m1_mclk
+				     &i2s1m1_sclktx
+				     &i2s1m1_lrcktx
+				     &i2s1m1_sdo0>;
+			rockchip,trcm-sync-tx-only;
+			status = "okay";
+		};
+	};
+};
