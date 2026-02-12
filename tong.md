@@ -106,3 +106,8 @@ arecord -D hw:0,0 -f S16_LE -r 48000 -c 2 -d 10 recorded.wav
 DTS overlay 的作用就是通过设备树描述告诉这些已有驱动：用哪个 I2S 控制器、走哪组引脚复用、搭配哪个 codec。内核加载 overlay 后会自动 probe 对应的驱动模块，注册 ALSA 声卡设备。
 
 直接编译部署即可。
+
+
+/home/toxu/3b/orangepi-build/kernel/orange-pi-6.6-rk35xx/arch/arm64/boot/dts/rockchip/overlay
+
+
